@@ -1,6 +1,8 @@
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 
+const moveSpeed = 5
+
 let canvasWidth = 900;
 let canvasHeight = 900;
 
@@ -20,42 +22,34 @@ function degToRad (degrees){
     return degrees * (Math.PI / 180);
 }
 
+// Convert an angle from radians to degrees
 function radToDeg (radians) {
     return radians * (180 / Math.PI);
-}
-
-// Calculate angle between points, in radians. B is the center point.
-function calculateAngle(a, b, c) {
-    let AB = Math.sqrt(Math.pow(b.x-a.x,2)+ Math.pow(b.y-a.y,2));
-    let BC = Math.sqrt(Math.pow(b.x-c.x,2)+ Math.pow(b.y-c.y,2));
-    let AC = Math.sqrt(Math.pow(c.x-a.x,2)+ Math.pow(c.y-a.y,2));
-    return Math.acos((BC*BC+AB*AB-AC*AC)/(2*BC*AB));
-}
-
-// Given coordinates, angle, and distance, find point at that distance away, at that angle.
-function findNewPoint(x, y, angle, distance) {
-    let result = {};
-
-    result.x = Math.round(Math.cos(degToRad(angle) + 90) * distance + x);
-    result.y = Math.round(Math.sin(degToRad(angle) + 90) * distance + y);
-
-    return result;
 }
 
 ////////////////////
 // INPUT HANDLERS //
 ////////////////////
 
-function clickHandler(canvas, event){
-    const rect = canvas.getBoundingClientRect()
-    let clickCoords = {x: event.clientX - rect.left, y: event.clientY - rect.top};
-    let playerCoords = {x: playerX, y: playerY};
-    let playerFacingCoords = findNewPoint(playerX, playerY, playerFacing, 20); //TODO something is making this break
+function keyDownHandler(e) {
+    if (e.key === "w") {
+        playerY -= moveSpeed;
+    } else if (e.key === "a") {
+        playerX -= moveSpeed;
+    } else if (e.key === "s") {
+        playerY += moveSpeed;
+    } else if (e.key === "d") {
+        playerX += moveSpeed;
+    }
+}
 
-    playerFacing = radToDeg(calculateAngle( clickCoords, playerCoords, playerFacingCoords));
-    console.log(playerFacingCoords.x, playerFacingCoords.y);
-    console.log(playerFacing);
-    // console.log("x: " + clickX + " y: " + clickY);
+function mouseMoveHandler(e){
+    const bounds = canvas.getBoundingClientRect();
+    const mouseCoords = { x: 0, y: 0 };
+    mouseCoords.x = e.pageX - bounds.left;
+    mouseCoords.y = e.pageY - bounds.top ;
+
+    playerFacing = radToDeg(Math.atan2(mouseCoords.y - playerY, mouseCoords.x - playerX)) + 90;
 }
 
 ////////////////////
@@ -64,8 +58,6 @@ function clickHandler(canvas, event){
 function drawRotated(degree,rotatePoint,drFunc) {
     ctx.save();
     rotatePoint = rotatePoint || {x:canvasWidth/2,y:canvasHeight/2};
-    // Clear the canvas
-    // ctx.clearRect(0, 0, canvasWidth, canvasHeight);
 
     // Move registration point to the center of the canvas
     ctx.translate(rotatePoint.x, rotatePoint.y);
@@ -110,10 +102,13 @@ function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear the canvas on each frame
 
     drawRotated(playerFacing, {x: playerX, y: playerY}, drawPlayer);
-    drawPlayerWeaknessDebuff(playerWeaknessDebuff);
-    // drawRotated(playerFacing, {x: playerX, y: playerY}, function (){drawPlayerWeaknessDebuff(playerWeaknessDebuff)});
+    drawPlayerWeaknessDebuff(playerWeaknessDebuff);1
+
+    // playerFacing++;
 }
 
+document.addEventListener("keydown", keyDownHandler, false);
+document.addEventListener("mousemove", mouseMoveHandler);
 canvas.addEventListener('mousedown', function(e) {
     clickHandler(canvas, e);
 });
