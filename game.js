@@ -55,18 +55,19 @@ function getPlayerTile(){
     }
 }
 
-// Returns the "quadrant" (Front/Right/Back/Left) that the coordinates of the given enemy is with relation to the player.
+// Returns the "quadrant" (Front/Right/Back/Left) that the coordinates otherObject is with relation to the position of centralObject.
 // 1 = enemy is in front of player, 2 = enemy is to right, 3 = back, 4 = left
 // Useful for checking whether the player's "safe side" is pointed the correct way
-function checkFacing(enemy) {
-    let enemyAngle = calculateAngle(enemy.x, enemy.y);
-    if (enemyAngle >= playerFacing + 315 || enemyAngle < playerFacing + 45) { // Front
+function checkDirection(centralObject, otherObject) {
+    let otherObjectAngle = calculateAngle(otherObject.x, otherObject.y);
+    let centralObjectAngle = calculateAngle(centralObject.x, centralObject.y) // TODO check that this is equal to playerFacing for player x and y
+    if (otherObjectAngle >= centralObjectAngle + 315 || otherObjectAngle < centralObjectAngle + 45) { // Front
         return 1;
-    } else if (enemyAngle >= playerFacing + 45 && enemyAngle < playerFacing + 135) { // Right
+    } else if (otherObjectAngle >= centralObjectAngle + 45 && otherObjectAngle < centralObjectAngle + 135) { // Right
         return 2;
-    } else if (enemyAngle >= playerFacing + 135 && enemyAngle < playerFacing + 225) { // Back
+    } else if (otherObjectAngle >= centralObjectAngle + 135 && otherObjectAngle < centralObjectAngle + 225) { // Back
         return 3;
-    } else if (enemyAngle >= playerFacing + 225 && enemyAngle < playerFacing + 315) { // Back
+    } else if (otherObjectAngle >= centralObjectAngle + 225 && otherObjectAngle < centralObjectAngle + 315) { // Back
         return 4;
     }
 }
