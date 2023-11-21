@@ -46,6 +46,15 @@ function getTileMidCoords(x, y){
     };
 }
 
+// Returns the array indices of the tile the player is currently standing in. (0, 0) is top left.
+// Useful for checking if player is standing in the bad
+function getPlayerTile(){
+    return {
+        x: Math.floor((playerX - 75) / 150),
+        y: Math.floor((playerY - 75)  / 150)
+    }
+}
+
 ////////////////////
 // INPUT HANDLERS //
 ////////////////////
@@ -121,7 +130,7 @@ function drawPlayerWeaknessDebuff(debuff){
 function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear the canvas on each frame
     // Draw arena background/fill
-    ctx.rect(75, 75, tileSize*arena.length, tileSize*arena.length);
+    ctx.rect(0, 0, canvas.width, canvas.height);
     ctx.fillStyle = "rgba(179, 119, 0, 1)";
     ctx.fill();
 
@@ -173,6 +182,18 @@ function draw() {
     // Draw the player
     drawRotated(playerFacing, {x: playerX, y: playerY}, drawPlayer);
     drawPlayerWeaknessDebuff(playerWeaknessDebuff);
+
+    // Perform checks if player has committed skill issue
+    let playerTile = getPlayerTile();
+    if (playerTile.x > 4 || playerTile.y > 4 || playerTile.x < 0 || playerTile. y < 0){
+        alert ("You walled :(");
+        playerX = 450;
+        playerY = 450;
+    } else if (arena[playerTile.x][playerTile.y] === 6){
+        alert ("You stood in the bad :(");
+        playerX = 450;
+        playerY = 450;
+    }
 }
 
 document.addEventListener("keydown", keyDownHandler, false);
