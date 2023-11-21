@@ -109,8 +109,4 @@ function draw() {
 
 document.addEventListener("keydown", keyDownHandler, false);
 document.addEventListener("mousemove", mouseMoveHandler);
-canvas.addEventListener('mousedown', function(e) {
-    clickHandler(canvas, e);
-});
-
 setInterval(draw, 10);
