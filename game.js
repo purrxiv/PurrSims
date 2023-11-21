@@ -55,6 +55,27 @@ function getPlayerTile(){
     }
 }
 
+// Returns the "quadrant" (Front/Right/Back/Left) that the coordinates of the given enemy is with relation to the player.
+// 1 = enemy is in front of player, 2 = enemy is to right, 3 = back, 4 = left
+// Useful for checking whether the player's "safe side" is pointed the correct way
+function checkFacing(enemy) {
+    let enemyAngle = calculateAngle(enemy.x, enemy.y);
+    if (enemyAngle >= playerFacing + 315 || enemyAngle < playerFacing + 45) { // Front
+        return 1;
+    } else if (enemyAngle >= playerFacing + 45 && enemyAngle < playerFacing + 135) { // Right
+        return 2;
+    } else if (enemyAngle >= playerFacing + 135 && enemyAngle < playerFacing + 225) { // Back
+        return 3;
+    } else if (enemyAngle >= playerFacing + 225 && enemyAngle < playerFacing + 315) { // Back
+        return 4;
+    }
+}
+
+// Returns the angle, in degrees, of the (x, y) point. 0 degrees is up/north.
+function calculateAngle(x, y){
+    return radToDeg(Math.atan2(y, x) + 90);
+}
+
 ////////////////////
 // INPUT HANDLERS //
 ////////////////////
