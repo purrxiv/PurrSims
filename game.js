@@ -20,8 +20,42 @@ function degToRad (degrees){
     return degrees * (Math.PI / 180);
 }
 
-function radToDeg (radians){
-    return radians * (180/ Math.PI);
+function radToDeg (radians) {
+    return radians * (180 / Math.PI);
+}
+
+// Calculate angle between points, in radians. B is the center point.
+function calculateAngle(a, b, c) {
+    let AB = Math.sqrt(Math.pow(b.x-a.x,2)+ Math.pow(b.y-a.y,2));
+    let BC = Math.sqrt(Math.pow(b.x-c.x,2)+ Math.pow(b.y-c.y,2));
+    let AC = Math.sqrt(Math.pow(c.x-a.x,2)+ Math.pow(c.y-a.y,2));
+    return Math.acos((BC*BC+AB*AB-AC*AC)/(2*BC*AB));
+}
+
+// Given coordinates, angle, and distance, find point at that distance away, at that angle.
+function findNewPoint(x, y, angle, distance) {
+    let result = {};
+
+    result.x = Math.round(Math.cos(degToRad(angle) + 90) * distance + x);
+    result.y = Math.round(Math.sin(degToRad(angle) + 90) * distance + y);
+
+    return result;
+}
+
+////////////////////
+// INPUT HANDLERS //
+////////////////////
+
+function clickHandler(canvas, event){
+    const rect = canvas.getBoundingClientRect()
+    let clickCoords = {x: event.clientX - rect.left, y: event.clientY - rect.top};
+    let playerCoords = {x: playerX, y: playerY};
+    let playerFacingCoords = findNewPoint(playerX, playerY, playerFacing, 20); //TODO something is making this break
+
+    playerFacing = radToDeg(calculateAngle( clickCoords, playerCoords, playerFacingCoords));
+    console.log(playerFacingCoords.x, playerFacingCoords.y);
+    console.log(playerFacing);
+    // console.log("x: " + clickX + " y: " + clickY);
 }
 
 ////////////////////
@@ -79,5 +113,9 @@ function draw() {
     drawPlayerWeaknessDebuff(playerWeaknessDebuff);
     // drawRotated(playerFacing, {x: playerX, y: playerY}, function (){drawPlayerWeaknessDebuff(playerWeaknessDebuff)});
 }
+
+canvas.addEventListener('mousedown', function(e) {
+    clickHandler(canvas, e);
+});
 
 setInterval(draw, 10);
