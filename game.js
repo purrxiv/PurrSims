@@ -2,9 +2,9 @@ const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 
 const moveSpeed = 5
-
-let canvasWidth = 900;
-let canvasHeight = 900;
+const tileSize = 150;
+const canvasWidth = canvas.width;
+const canvasHeight = canvas.height;
 
 let playerX = 450;
 let playerY = 450;
@@ -12,6 +12,16 @@ let playerFacing = 0; // Angle player is facing, 0-359, 0 is North, 90 is E, 180
 
 let playerWeaknessDebuff = 1; // 0 = none, 1 = Front, 2 = Right, 3 = Back, 4 = Left
 let playerRotateDebuff = 0; // 0 = none, 3 = fake drawRotated, 5 = real drawRotated
+
+// Represent the state of the arena.
+// 0 = empty, 1 = up arrow, 2 = right, 3 = down, 4 = left, 5 = orb, 6 = blue/lit up/danger
+let arena = [
+    [6, 0, 0, 5, 0],
+    [0, 0, 0, 0, 0],
+    [0, 0, 0, 6, 0],
+    [5, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0]
+];
 
 //////////////////////
 // HELPER FUNCTIONS //
@@ -25,6 +35,15 @@ function degToRad (degrees){
 // Convert an angle from radians to degrees
 function radToDeg (radians) {
     return radians * (180 / Math.PI);
+}
+
+// Given a tile, return the canvas coordinates of the middle of the tile. (0, 0) is top left.
+// Useful for drawing and for line-of-sight calculations to orbs.
+function getTileMidCoords(x, y){
+    return {
+        x: 75+tileSize*x+75,
+        y: 75+tileSize*y+75
+    };
 }
 
 ////////////////////
@@ -87,22 +106,58 @@ function drawPlayerWeaknessDebuff(debuff){
         return;
     }
     debuff -= 1;
-    let startAngle = degToRad(playerFacing - 90 - 45) + degToRad(90 * debuff);
-    let endAngle = degToRad(playerFacing - 90 + 45) + degToRad(90 * debuff);
+    let endAngle = degToRad(playerFacing - 90 - 45) + degToRad(90 * debuff);
+    let startAngle = degToRad(playerFacing - 90 + 45) + degToRad(90 * debuff);
 
-    ctx.beginPath()
+
+    ctx.beginPath();
     ctx.strokeStyle = "rgba(252, 125, 0, 1)";
     ctx.lineWidth = 25;
-    ctx.arc(playerX, playerY, 50, startAngle, endAngle, true);
+    ctx.arc(playerX, playerY, 50, startAngle, endAngle, false);
     ctx.stroke();
 
 }
 
 function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear the canvas on each frame
+    // Draw arena background/fill
+    ctx.rect(75, 75, tileSize*arena.length, tileSize*arena.length);
+    ctx.fillStyle = "rgba(179, 119, 0, 1)";
+    ctx.fill();
+
+    // Draw arena hazards/items
+    for (let i = 0; i < 5; i++){
+        for (let j = 0; j < 5; j++){
+            switch (arena[i][j]) {
+                case 0:
+                    break;
+                case 1:
+                    break; // TODO
+                case 2:
+                    break; // TODO
+                case 3:
+                    break; // TODO
+                case 4:
+                    break; // TODO
+                case 5: // Orb
+                    ctx.beginPath();
+                    let coords = getTileMidCoords(i, j);
+                    ctx.arc(coords.x, coords.y, 50, 0, 2 * Math.PI);
+                    ctx.fillStyle = "rgba(204, 255, 255)";
+                    ctx.fill();
+                    break;
+                case 6: // Danger tile
+                    ctx.beginPath();
+                    ctx.rect(75 + tileSize * i, 75 + tileSize * j, tileSize - 2.5, tileSize - 2.5);
+                    ctx.fillStyle = "rgba(0, 102, 255, 1)";
+                    ctx.fill();
+                    break;
+            }
+        }
+    }
+    ctx.closePath();
 
     // Draw the arena tiles
-    const tileSize = 150;
     ctx.beginPath();
     for (let i = 0; i < 5; i++){
         for (let j = 0; j < 5; j++){
