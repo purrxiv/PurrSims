@@ -101,8 +101,23 @@ function drawPlayerWeaknessDebuff(debuff){
 function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear the canvas on each frame
 
+    // Draw the arena tiles
+    const tileSize = 150;
+    ctx.beginPath();
+    for (let i = 0; i < 5; i++){
+        for (let j = 0; j < 5; j++){
+            ctx.rect(75+tileSize*i, 75+tileSize*j, tileSize, tileSize);
+            // Top left of grid is (75, 75)
+        }
+    }
+    ctx.strokeStyle = "rgba(0, 0, 0, 1)";
+    ctx.lineWidth = 5;
+    ctx.stroke();
+    ctx.closePath();
+
+    // Draw the player
     drawRotated(playerFacing, {x: playerX, y: playerY}, drawPlayer);
-    drawPlayerWeaknessDebuff(playerWeaknessDebuff);1
+    drawPlayerWeaknessDebuff(playerWeaknessDebuff);
 }
 
 document.addEventListener("keydown", keyDownHandler, false);
