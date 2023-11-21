@@ -103,8 +103,6 @@ function draw() {
 
     drawRotated(playerFacing, {x: playerX, y: playerY}, drawPlayer);
     drawPlayerWeaknessDebuff(playerWeaknessDebuff);1
-
-    // playerFacing++;
 }
 
 document.addEventListener("keydown", keyDownHandler, false);
