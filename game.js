@@ -115,23 +115,6 @@ function keyDownHandler(e) {
         playerY += moveSpeed;
     } else if (e.key === "d") {
         playerX += moveSpeed;
-    } else if (e.key === "1"){
-        let orb = getTileMidCoords(0, 3);
-        switch (checkPlayerDirection(orb)){
-            case 1:
-                console.log("Front");
-                break;
-            case 2:
-                console.log("Right");
-                break;
-            case 3:
-                console.log("Back");
-                break;
-            case 4:
-                console.log("Left");
-                break;
-        }
-
     }
 }
 
