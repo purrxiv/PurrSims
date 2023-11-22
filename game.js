@@ -357,15 +357,15 @@ function beginAnalysisArcaneArray(){
     intervals.push(setInterval(draw, 10));
 
     timeouts.push(setTimeout(() => {
-        intervals.push(setInterval(step, 1000));
+        intervals.push(setInterval(step, 1200));
     }, 5000));
 
     timeouts.push(setTimeout(() => {
-        bossCleave(randomDirection(), randomRotation(), randomRotationDebuff(), 5000);
+        bossCleave(randomDirection(), randomRotation(), randomRotationDebuff(), 6000);
     }, 5000 + (3 * 1200)));
 
     timeouts.push(setTimeout(() => {
-        bossGaze(randomRotation(), randomRotationDebuff(), 6000 + 7000);
+        bossGaze(randomRotation(), randomRotationDebuff(), 6000 + 8000);
     }, 5000 + (3 * 1200) - 2000));
 
     heldKey = null;
@@ -671,7 +671,7 @@ function draw() {
     }
 
     // Perform check if player has cleared
-    if (stepCount > 13){
+    if (stepCount > 14){
         if(confirm ("Congrats, you survived the mechanic :)\nClick OK to go again, or Cancel to stop and choose another mechanic.")){
             beginAnalysisArcaneArray()
         } else {
