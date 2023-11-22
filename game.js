@@ -22,6 +22,9 @@ let hitByOrb = false;
 // Whether the player was in the wrong quadrant for boss cleave. Used for resetting stage if hit.
 let hitByCleave = false;
 
+// Whether the player was facing the wrong way for the boss gaze/tether. Used for resetting stage if hit.
+let hitByGaze = false;
+
 // Represent the state of the arena.
 // 0 = empty, 1 = up arrow, 2 = right, 3 = down, 4 = left, 5 = orb, 6 = blue/lit up/danger
 let arena = [
@@ -44,6 +47,9 @@ let arenaMechanics = [
 
 // The currently pending boss cleave, or null if none active
 let pendingBossCleave;
+
+// The currently pending rotation of the player safe side, or null if none active
+let pendingRotate;
 
 // The number of mechanic steps
 let stepCount = 0;
@@ -100,7 +106,6 @@ function checkBossDirection(player) {
     if (playerPositionAngle < 0){
         playerPositionAngle += 360;
     }
-    console.log(playerPositionAngle);
     if (playerPositionAngle < 45 || playerPositionAngle >= 315) { // Front
         return 1;
     } else if (playerPositionAngle >= 45 && playerPositionAngle < 135) { // Right
@@ -229,7 +234,6 @@ function orbExplosion(tileX, tileY){
 
 // Schedules a boss cleave with the specified 3 or 5 rotation to go off in a specified amount of time in milliseconds.
 // telegraphDirection should be 1-4, for up right down left respectively
-// rotationDirection should be 1 for clockwise and 2 for counterclockwise (this is the rotation telegraph that is shown)
 // rotationCount should be 3 or 5
 // delay should be a time in milliseconds
 function bossCleave(telegraphDirection, clockwise, rotationCount, delay){
@@ -265,6 +269,41 @@ function bossCleave(telegraphDirection, clockwise, rotationCount, delay){
     }, delay));
 }
 
+// Schedules a boss gaze and a player debuff rotation with the specified 3 or 5 rotation to go off in a specified amount of time in milliseconds.
+// rotationCount should be 3 or 5
+// delay should be a time in milliseconds
+function bossGaze(clockwise, rotationCount, delay){
+    pendingRotate = {
+      clockwise: clockwise,
+      rotationCount: rotationCount,
+    };
+
+    timeouts.push(setTimeout(() =>{
+        if (rotationCount === 3){
+            clockwise = !clockwise;
+        }
+
+        if (clockwise){
+            playerWeaknessDebuff++;
+        } else {
+            playerWeaknessDebuff--;
+        }
+
+        if (playerWeaknessDebuff === 5){
+            playerWeaknessDebuff = 1;
+        }
+
+        if (playerWeaknessDebuff === 0){
+            playerWeaknessDebuff = 4;
+        }
+
+        if (!(playerWeaknessDebuff === checkPlayerDirection({x: canvasWidth/2, y: canvasHeight/2}))){
+            hitByGaze = true;
+        }
+        pendingRotate = null;
+    }, delay));
+}
+
 // Resets the game state
 function reset(){
     playerX = 450;
@@ -288,12 +327,15 @@ function reset(){
     ];
 
     playerWeaknessDebuff = Math.floor(Math.random() * 4) + 1
+    playerRotationDebuff = randomRotationDebuff();
 
     stepCount = 0;
 
     hitByOrb = false;
     hitByCleave = false;
+    hitByGaze = false;
     pendingBossCleave = null;
+    pendingRotate = null;
 
     for (let i = 0; i < intervals.length; i++){
         clearInterval(intervals.pop());
@@ -312,6 +354,10 @@ function reset(){
     timeouts.push(setTimeout(() => {
         bossCleave(randomDirection(), randomRotation(), randomRotationDebuff(), 5000);
     }, 5000 + (3 * 1200)));
+
+    timeouts.push(setTimeout(() => {
+        bossGaze(randomRotation(), randomRotationDebuff(), 6000 + 7000);
+    }, 5000 + (3 * 1200) - 2000));
 }
 
 ////////////////////
@@ -453,6 +499,37 @@ function drawBossCleave(direction, clockwise, rotationCount){
     ctx.stroke();
 }
 
+function drawPlayerRotate(clockwise, rotationCount){
+    ctx.beginPath();
+    ctx.strokeStyle = "rgba(93, 138, 168, 1)";
+    ctx.lineWidth = 5;
+    ctx.arc(playerX, playerY, 35, Math.PI, 0, false);
+    ctx.arc(playerX, playerY, 35, 0, Math.PI, false);
+
+    ctx.font = "48px Calibri";
+    ctx.fillStyle = "rgba(93, 138, 168, 1)";
+    ctx.fillText(rotationCount, playerX - 10, playerY);
+
+    if (clockwise){
+        ctx.moveTo( playerX + 35 - 10, playerY - 15);
+        ctx.lineTo(playerX + 35, playerY);
+        ctx.lineTo(playerX + 35 + 10, playerY - 15);
+
+        ctx.moveTo(playerX - 35 - 10, playerY + 15);
+        ctx.lineTo(playerX - 35, playerY);
+        ctx.lineTo(playerX - 35 + 10, playerY + 15);
+    } else { // counterclockwise
+        ctx.moveTo(playerX + 35 - 10, playerY + 15);
+        ctx.lineTo(playerX + 35, playerY);
+        ctx.lineTo(playerX + 35 + 10, playerY + 15);
+
+        ctx.moveTo(playerX - 35 - 10, playerY - 15);
+        ctx.lineTo(playerX - 35, playerY);
+        ctx.lineTo(playerX - 35 + 10, playerY - 15);
+    }
+    ctx.stroke();
+}
+
 function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear the canvas on each frame
     // Draw arena background/fill
@@ -541,15 +618,22 @@ function draw() {
     } else if (hitByCleave){
         alert("You stood in the boss's bad :(");
         reset();
+    } else if (hitByGaze){
+        alert("You didn't show hole to the boss :(");
+        reset();
     }
 
     // Perform check if player has cleared
-    if (stepCount > 10){
+    if (stepCount > 13){
         alert("Congrats, you survived the mechanic :)");
         reset();
     }
     if (pendingBossCleave){
         drawBossCleave(pendingBossCleave.telegraphDirection, pendingBossCleave.clockwise, pendingBossCleave.rotationCount);
+    }
+
+    if (pendingRotate){
+        drawPlayerRotate(pendingRotate.clockwise, pendingRotate.rotationCount);
     }
 }
 
@@ -559,8 +643,12 @@ document.addEventListener("mousemove", mouseMoveHandler);
 intervals.push(setInterval(draw, 10));
 setTimeout(() => {
     intervals.push(setInterval(step, 1200));
-}, 5000);
+}, 3000);
 
 timeouts.push(setTimeout(() => {
     bossCleave(randomDirection(), randomRotation(), randomRotationDebuff(), 6000);
-}, 5000 + (3 * 1200)));
+}, 3000 + (3 * 1200)));
+
+timeouts.push(setTimeout(() => {
+    bossGaze(randomRotation(), randomRotationDebuff(), 6000 + 7000);
+}, 3000 + (3 * 1200) - 2000));
