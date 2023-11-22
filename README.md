@@ -10,4 +10,5 @@ To use these simulators, a browser that supports the HTML canvas is needed, and 
 - Arcane Array (Under development)
 
 ## Planned mechanics
-- None currently
+### Another Aloalo Island
+- Spatial Tactics
