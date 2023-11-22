@@ -6,7 +6,39 @@
     <link rel="stylesheet" href="stylesheet.css" />
 </head>
 <body>
-<canvas id="game" width="900" height="900"></canvas>
+<div class="left-div"><canvas id="game" width="900" height="900"></canvas></div>
+<div class="right-div">
+    <h1>Purr Simmin'</h1>
+    <h2>FFXIV Mechanic Simulator by <a href="https://purr.moe">Purrnyan Mew'uwu@Diabolos</a></h2>
+    <p>May the...<span style="font-style: italic">fruits</span>...of your time spent practicing here taste like sweet, sweet prog.</p>
+    <p>This is a very quick, dirty, simple, and jank simulator mostly made for my own use, but it gets the job done.</p>
+    <label for="mechanic-selector">Choose a mechanic:</label>
+    <select name="mechanic-selector" id="mechanic-selector">
+        <optgroup label="Another Aloalo Island">
+            <option value="aai-analysis">Analysis+Arcane Array</option>
+            <option value="aai-spatial-tactics" disabled>Spatial Tactics (under development)</option>
+        </optgroup>
+    </select>
+    <button id = "begin">Begin</button>
+    <h3>Known Issues</h3>
+    <h4>Analysis + Arcane Array</h4>
+    <ul>
+        <li>After the first reset, the boss cleave from the first run lingers during the second run, likely causing a wipe. Wiping/resetting a second time (so from the third run onwards), the simulator functions as normal again.</li>
+    </ul>
+    <h3>Notice</h3>
+    <p>This web page, including all the HTML, JavaScript, and CSS code comprising and running it, was developed by
+        <a href="https://cursedblackcat.com">CursedBlackCat</a>/<a href="https://purr.moe">Purrnyan Mew'uwu@Diabolos</a>
+        and is not licensed. You are permitted to use the mechanic simulator on this web page for free to practice
+        mechanics to help you prog the real thing in FFXIV, but you are not permitted to use or modify the source code
+        of this page under any other circumstances without the express written permission of the developer.
+    </p>
+    <p>Not that you would probably want to anyway, as this web page is as barebones as it gets, and my JavaScript
+        is a mess.</p>
+    <footer>
+        <p style="text-align: center">© 2023 CursedBlackCat</p>
+    </footer>
+</div>
 <script src="game.js"></script>
+<script src="simulator.js"></script>
 </body>
 </html>

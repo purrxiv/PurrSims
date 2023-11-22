@@ -308,8 +308,27 @@ function bossGaze(clockwise, rotationCount, delay){
     }, delay));
 }
 
-// Resets the game state
-function reset(){
+// Freezes the game state. Called on mechanic failure
+function stop() {
+    hitByOrb = false;
+    hitByCleave = false;
+    hitByGaze = false;
+    pendingBossCleave = null;
+    pendingRotate = null;
+    heldKey = null;
+
+    for (let i = 0; i < intervals.length; i++){
+        clearInterval(intervals.pop());
+    }
+
+    for (let i = 0; i < timeouts.length; i++){
+        clearTimeout(timeouts.pop());
+    }
+}
+
+// Resets the game state and starts a run
+function beginAnalysisArcaneArray(){
+    stop();
     playerX = 450;
     playerY = 485;
     playerFacing = 0;
@@ -334,20 +353,6 @@ function reset(){
     playerRotationDebuff = randomRotationDebuff();
 
     stepCount = 0;
-
-    hitByOrb = false;
-    hitByCleave = false;
-    hitByGaze = false;
-    pendingBossCleave = null;
-    pendingRotate = null;
-
-    for (let i = 0; i < intervals.length; i++){
-        clearInterval(intervals.pop());
-    }
-
-    for (let i = 0; i < timeouts.length; i++){
-        clearTimeout(timeouts.pop());
-    }
 
     intervals.push(setInterval(draw, 10));
 
@@ -634,26 +639,44 @@ function draw() {
     // Perform checks if player has committed skill issue
     let playerTile = getPlayerTile();
     if (playerTile.x > 4 || playerTile.y > 4 || playerTile.x < 0 || playerTile. y < 0){
-        alert ("You walled :(");
-        reset();
+        if(confirm ("You walled :(\nClick OK to retry, or Cancel to stop and choose another mechanic.")){
+            beginAnalysisArcaneArray()
+        } else {
+            stop();
+        }
     } else if (arena[playerTile.y][playerTile.x] === 6){
-        alert ("You got floorfucked :(");
-        reset();
+        if(confirm ("You got floorfucked :(\nClick OK to retry, or Cancel to stop and choose another mechanic.")){
+            beginAnalysisArcaneArray()
+        } else {
+            stop();
+        }
     } else if (hitByOrb){
-        alert("You didn't show hole to the orb :(");
-        reset();
+        if(confirm ("You didn't show hole to the orb :(\nClick OK to retry, or Cancel to stop and choose another mechanic.")){
+            beginAnalysisArcaneArray()
+        } else {
+            stop();
+        }
     } else if (hitByCleave){
-        alert("You stood in the boss's bad :(");
-        reset();
+        if(confirm ("You got hit by the boss's cleave :(\nClick OK to retry, or Cancel to stop and choose another mechanic.")){
+            beginAnalysisArcaneArray()
+        } else {
+            stop();
+        }
     } else if (hitByGaze){
-        alert("You didn't show hole to the boss :(");
-        reset();
+        if(confirm ("You didn't show hole to the boss :(\nClick OK to retry, or Cancel to stop and choose another mechanic.")){
+            beginAnalysisArcaneArray()
+        } else {
+            stop();
+        }
     }
 
     // Perform check if player has cleared
     if (stepCount > 13){
-        alert("Congrats, you survived the mechanic :)");
-        reset();
+        if(confirm ("Congrats, you survived the mechanic :)\nClick OK to go again, or Cancel to stop and choose another mechanic.")){
+            beginAnalysisArcaneArray()
+        } else {
+            stop();
+        }
     }
     if (pendingBossCleave){
         drawBossCleave(pendingBossCleave.telegraphDirection, pendingBossCleave.clockwise, pendingBossCleave.rotationCount);
@@ -669,5 +692,3 @@ document.addEventListener("keyup", keyUpHandler, false);
 document.addEventListener("mousemove", mouseMoveHandler);
 
 bossIcon.src = "img/boss.png";
-
-reset();
