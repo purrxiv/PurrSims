@@ -58,16 +58,17 @@ function getPlayerTile(){
 // Returns the "quadrant" (Front/Right/Back/Left) that enemy is with relation to the direction of the player.
 // 1 = enemy is in front of player, 2 = enemy is to right, 3 = back, 4 = left
 // Useful for checking whether the player's "safe side" is pointed the correct way
+// TODO can probably generalize this to also be used for the boss cleaves
 function checkPlayerDirection(enemy) {
-    let enemyAngle = calculateAngle(enemy.x, enemy.y);
-    console.log(enemyAngle, playerFacing);
-    if (enemyAngle >= playerFacing + 315 || enemyAngle < playerFacing + 45) { // Front
+    let enemyAngle = calculateAngleFromPoint({x: enemy.x, y: enemy.y}, {x: playerX, y: playerY});
+    enemyAngle -= playerFacing;
+    if (enemyAngle < 45) { // Front
         return 1;
-    } else if (enemyAngle >= playerFacing + 45 && enemyAngle < playerFacing + 135) { // Right
+    } else if (enemyAngle >= 45 && enemyAngle < 135) { // Right
         return 2;
-    } else if (enemyAngle >= playerFacing + 135 && enemyAngle < playerFacing + 225) { // Back
+    } else if (enemyAngle >= 135 && enemyAngle < 225) { // Back
         return 3;
-    } else if (enemyAngle >= playerFacing + 225 && enemyAngle < playerFacing + 315) { // Back
+    } else if (enemyAngle >= 225 && enemyAngle < 315) { // Back
         return 4;
     }
 }
@@ -76,6 +77,7 @@ function checkPlayerDirection(enemy) {
 // 1 = otherObject is in front of centralObject, 2 = otherObject is to right, 3 = back, 4 = left
 // Useful for checking whether the player is on the boss aoe's "safe side"
 // DOES NOT WORK FOR THE PLAYER BECAUSE THAT NEEDS PLAYER DIRECTION, NOT COORDINATES
+// TODO can probably delete this function after generalizing the above function
 function checkObjectDirection(centralObject, otherObject) {
     let otherObjectAngle = calculateAngle(otherObject.x, otherObject.y);
     let centralObjectAngle = calculateAngle(centralObject.x, centralObject.y);
@@ -90,9 +92,14 @@ function checkObjectDirection(centralObject, otherObject) {
     }
 }
 
-// Returns the angle, in degrees, of the (x, y) point. 0 degrees is up/north.
+// Returns the angle, in degrees, of the (x, y) point, relative to the middle of the canvas. 0 degrees is up/north.
 function calculateAngle(x, y){
-    return radToDeg(Math.atan2(y, x)) + 90;
+    return radToDeg(Math.atan2(y - (canvasHeight/2), x - (canvasWidth/2))) + 90;
+}
+
+// Returns the angle, in degrees, of the (x, y) point, relative to the given reference point. 0 degrees is up/north.
+function calculateAngleFromPoint(objectPoint, referencePoint){
+    return radToDeg(Math.atan2(objectPoint.y - referencePoint.y, objectPoint.x - referencePoint.x)) + 90;
 }
 
 ////////////////////
@@ -110,7 +117,21 @@ function keyDownHandler(e) {
         playerX += moveSpeed;
     } else if (e.key === "1"){
         let orb = getTileMidCoords(0, 3);
-        console.log(checkPlayerDirection({x: playerX, y: playerY}, orb));
+        switch (checkPlayerDirection(orb)){
+            case 1:
+                console.log("Front");
+                break;
+            case 2:
+                console.log("Right");
+                break;
+            case 3:
+                console.log("Back");
+                break;
+            case 4:
+                console.log("Left");
+                break;
+        }
+
     }
 }
 
