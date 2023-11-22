@@ -14,7 +14,7 @@ let playerY = 485;
 let playerFacing = 0; // Angle player is facing, 0-359, 0 is North, 90 is E, 180 S, 270 W (clockwise)
 
 let playerWeaknessDebuff = randomDirection(); // 0 = none, 1 = Front, 2 = Right, 3 = Back, 4 = Left
-let playerRotateDebuff = randomRotation(); // 0 = none, 3 = fake drawRotated, 5 = real drawRotated
+let playerRotationDebuff = randomRotationDebuff(); // 0 = none, 3 = fake drawRotated, 5 = real drawRotated
 
 // Whether the player was facing the wrong way for the orb. Used for resetting stage if hit.
 let hitByOrb = false;
@@ -85,8 +85,12 @@ function randomDirection(){
 }
 
 function randomRotation(){
-    const rotations = [3,5];
-    return rotations[Math.floor(Math.random() * rotations.length)];
+    return Math.random() >= 0.5;
+}
+
+function randomRotationDebuff(){
+    const possibilities = [3,5];
+    return possibilities[Math.floor(Math.random() * possibilities.length)];
 }
 
 // Returns the "quadrant" (Front/Right/Back/Left) that player is with relation to the boss (middle of arena).
@@ -252,15 +256,33 @@ function orbExplosion(tileX, tileY){
 // rotationDirection should be 1 for clockwise and 2 for counterclockwise (this is the rotation telegraph that is shown)
 // rotationCount should be 3 or 5
 // delay should be a time in milliseconds
-function bossCleave(telegraphDirection, rotationDirection, rotationCount, delay){
+function bossCleave(telegraphDirection, clockwise, rotationCount, delay){
     pendingBossCleave = {
         telegraphDirection: telegraphDirection,
-        rotationDirection: rotationDirection,
+        clockwise: clockwise,
         rotationCount: rotationCount,
     }
 
     timeouts.push(setTimeout(() =>{
         let safeSide = telegraphDirection; // TODO rotate cleave
+        if (rotationCount === 3){
+            clockwise = !clockwise;
+        }
+
+        if (clockwise){
+            safeSide++;
+        } else {
+            safeSide--;
+        }
+
+        if (safeSide === 5){
+            safeSide = 1;
+        }
+
+        if (safeSide === 0){
+            safeSide = 4;
+        }
+
         if (checkBossDirection({x: playerX, y: playerY}) !== safeSide){
             hitByCleave = true;
         }
@@ -313,7 +335,7 @@ function reset(){
     }, 5000));
 
     timeouts.push(setTimeout(() => {
-        bossCleave(randomDirection(), Math.floor(Math.random() * 2) + 1, randomRotation(), 5000);
+        bossCleave(randomDirection(), randomRotation(), randomRotationDebuff(), 5000);
     }, 5000 + (3 * 1200)));
 }
 
@@ -412,7 +434,7 @@ function drawPlayerWeaknessDebuff(debuff){
 
 }
 
-function drawBossCleave(direction, rotation){
+function drawBossCleave(direction, clockwise, rotationCount){
     direction -= 1;
     let endAngle = degToRad(0 - 90  - 45 + 90*direction);
     let startAngle = degToRad(0 - 90  + 45 + 90*direction);
@@ -423,6 +445,37 @@ function drawBossCleave(direction, rotation){
     ctx.arc(canvasWidth / 2, canvasHeight / 2, 450, startAngle, endAngle, false);
     ctx.lineTo(canvasWidth / 2, canvasHeight / 2);
     ctx.fill();
+
+    // let drawingXCoord = 3 * canvasWidth / 4 + tileSize / 2;
+    let drawingXCoord = canvasWidth /2;
+    ctx.beginPath();
+    ctx.strokeStyle = "rgba(256, 87, 87, 1)";
+    ctx.lineWidth = 5;
+    ctx.arc(drawingXCoord, canvasHeight / 2, 35, Math.PI, 0, false);
+    ctx.arc(drawingXCoord, canvasHeight / 2, 35, 0, Math.PI, false);
+
+    ctx.font = "48px Calibri";
+    ctx.fillStyle = "rgba(256, 87, 87, 1)";
+    ctx.fillText(rotationCount, drawingXCoord - 10, canvasHeight / 2 + 15);
+
+    if (clockwise){
+        ctx.moveTo( drawingXCoord + 35 - 10, canvasHeight / 2 - 15);
+        ctx.lineTo(drawingXCoord + 35, canvasHeight / 2);
+        ctx.lineTo(drawingXCoord + 35 + 10, canvasHeight / 2 - 15);
+
+        ctx.moveTo(drawingXCoord - 35 - 10, canvasHeight / 2 + 15);
+        ctx.lineTo(drawingXCoord - 35, canvasHeight / 2);
+        ctx.lineTo(drawingXCoord - 35 + 10, canvasHeight / 2 + 15);
+    } else { // counterclockwise
+        ctx.moveTo(drawingXCoord + 35 - 10, canvasHeight / 2 + 15);
+        ctx.lineTo(drawingXCoord + 35, canvasHeight / 2);
+        ctx.lineTo(drawingXCoord + 35 + 10, canvasHeight / 2 + 15);
+
+        ctx.moveTo(drawingXCoord - 35 - 10, canvasHeight / 2 - 15);
+        ctx.lineTo(drawingXCoord - 35, canvasHeight / 2);
+        ctx.lineTo(drawingXCoord - 35 + 10, canvasHeight / 2 - 15);
+    }
+    ctx.stroke();
 }
 
 function draw() {
@@ -521,7 +574,7 @@ function draw() {
         reset();
     }
     if (pendingBossCleave){
-        drawBossCleave(pendingBossCleave.telegraphDirection, pendingBossCleave.rotationDirection);
+        drawBossCleave(pendingBossCleave.telegraphDirection, pendingBossCleave.clockwise, pendingBossCleave.rotationCount);
     }
 }
 
@@ -534,5 +587,5 @@ setTimeout(() => {
 }, 5000);
 
 timeouts.push(setTimeout(() => {
-    bossCleave(randomDirection(), Math.floor(Math.random() * 2) + 1, randomRotation(), 5000);
+    bossCleave(randomDirection(), randomRotation(), randomRotationDebuff(), 6000);
 }, 5000 + (3 * 1200)));
