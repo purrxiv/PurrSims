@@ -6,6 +6,8 @@ const tileSize = 150;
 const canvasWidth = canvas.width;
 const canvasHeight = canvas.height;
 
+const bossIcon = new Image();
+
 let intervals = [];
 let timeouts = [];
 
@@ -600,6 +602,10 @@ function draw() {
     ctx.stroke();
     ctx.closePath();
 
+    // Draw the boss icon
+    ctx.beginPath();
+    ctx.drawImage(bossIcon, canvasWidth / 2 - 25, canvasHeight / 2 - 25);
+
     // Draw the player
     drawRotated(playerFacing, {x: playerX, y: playerY}, drawPlayer);
     drawPlayerWeaknessDebuff(playerWeaknessDebuff);
@@ -639,6 +645,8 @@ function draw() {
 
 document.addEventListener("keydown", keyDownHandler, false);
 document.addEventListener("mousemove", mouseMoveHandler);
+
+bossIcon.src = "img/boss.png";
 
 intervals.push(setInterval(draw, 10));
 setTimeout(() => {
