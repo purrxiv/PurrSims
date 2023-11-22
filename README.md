@@ -7,7 +7,7 @@ To use this simulator, a browser that supports the HTML canvas is needed, and Ja
 
 ## Currently supported mechanics
 ### Another Aloalo Island
-- Arcane Array
+- Analysis/Arcane Array
 
 ## Planned mechanics
 ### Another Aloalo Island
