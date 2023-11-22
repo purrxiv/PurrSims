@@ -10,17 +10,27 @@ let playerX = 450;
 let playerY = 450;
 let playerFacing = 0; // Angle player is facing, 0-359, 0 is North, 90 is E, 180 S, 270 W (clockwise)
 
-let playerWeaknessDebuff = 1; // 0 = none, 1 = Front, 2 = Right, 3 = Back, 4 = Left
+let playerWeaknessDebuff = Math.floor(Math.random() * 4) + 1; // 0 = none, 1 = Front, 2 = Right, 3 = Back, 4 = Left
 let playerRotateDebuff = 0; // 0 = none, 3 = fake drawRotated, 5 = real drawRotated
 
 // Represent the state of the arena.
 // 0 = empty, 1 = up arrow, 2 = right, 3 = down, 4 = left, 5 = orb, 6 = blue/lit up/danger
 let arena = [
-    [6, 0, 0, 5, 0],
+    [2, 5, 0, 0, 3],
+    [0, 0, 0, 0, 4],
     [0, 0, 0, 0, 0],
-    [0, 0, 0, 6, 0],
-    [5, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0]
+    [2, 0, 0, 0, 5],
+    [1, 0, 0, 0, 4]
+];
+
+// Represent the next steps of the arena's mechanics.
+// 1 = tile will go up next, 2 = right next, 3 = down, 4 = left
+let arenaMechanics = [
+    [2, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 4]
 ];
 
 //////////////////////
@@ -62,6 +72,9 @@ function getPlayerTile(){
 function checkPlayerDirection(enemy) {
     let enemyAngle = calculateAngleFromPoint({x: enemy.x, y: enemy.y}, {x: playerX, y: playerY});
     enemyAngle -= playerFacing;
+    if (enemyAngle < 0){
+        enemyAngle += 360;
+    }
     if (enemyAngle < 45 || enemyAngle >= 315) { // Front
         return 1;
     } else if (enemyAngle >= 45 && enemyAngle < 135) { // Right
@@ -127,6 +140,69 @@ function mouseMoveHandler(e){
     playerFacing = radToDeg(Math.atan2(mouseCoords.y - playerY, mouseCoords.x - playerX)) + 90;
 }
 
+////////////////////////
+// MECHANIC FUNCTIONS //
+////////////////////////
+
+// Advance the board by one stage/step.
+function step(){
+    let actionTiles = []; // List of tiles requiring action
+    for (let i = 0; i < arenaMechanics.length; i++){
+        for (let j = 0; j < arenaMechanics[i].length; j++){
+            if (arenaMechanics[i][j] !== 0){
+                actionTiles.push({x: j, y: i});
+            }
+        }
+    }
+
+    for (let i = 0; i < actionTiles.length; i++){
+        let tileX = actionTiles[i].x;
+        let tileY = actionTiles[i].y;
+        if (arena[tileY][tileX] === 5){
+            if (!orbExplosion(tileX, tileY)){
+                alert("You didn't show hole to the orb :(");
+            }
+        }
+        arena[tileY][tileX] = 6;
+        setNextTile(tileX, tileY, arenaMechanics[tileY][tileX]);
+
+        arenaMechanics[tileY][tileX] = 0;
+    }
+} //
+
+// Helper function for step()
+function setNextTile(tileX, tileY, direction){
+    switch (direction){
+        case 1:
+            tileY--;
+            break;
+        case 2:
+            tileX++;
+            break;
+        case 3:
+            tileY++;
+            break;
+        case 4:
+            tileX--;
+            break;
+    }
+
+    if (arena[tileY][tileX] === 0 || arena[tileY][tileX] === 5){
+        arenaMechanics[tileY][tileX] = direction;
+    } else {
+        arenaMechanics[tileY][tileX] = arena[tileY][tileX];
+    }
+}
+
+// Checks whether the player's weakness ring is appropriately faced for an exploding orb.
+// Returns true if the player correctly resolved the mechanic, and returns false if not.
+function orbExplosion(tileX, tileY){
+    if (playerWeaknessDebuff === 0){
+        return true;
+    }
+    return playerWeaknessDebuff === checkPlayerDirection(getTileMidCoords(tileX, tileY));
+}
+
 ////////////////////
 // DRAW FUNCTIONS //
 ////////////////////
@@ -145,6 +221,54 @@ function drawRotated(degree,rotatePoint,drFunc) {
 
     drFunc();
     ctx.restore();
+}
+
+// Given tile X and Y coordinates, draw an up arrow on that tile. (0, 0) is top left.
+function drawUpArrow(tileX, tileY){
+    let drawingCoords = getTileMidCoords(tileX, tileY);
+    ctx.beginPath();
+    ctx.moveTo(drawingCoords.x - (tileSize / 3), drawingCoords.y + (tileSize / 5));
+    ctx.lineTo(drawingCoords.x, drawingCoords.y - (tileSize / 5));
+    ctx.lineTo(drawingCoords.x + (tileSize / 3), drawingCoords.y + (tileSize / 5));
+    ctx.strokeStyle = "rgba(255, 212, 128, 1)";
+    ctx.lineWidth = 7;
+    ctx.stroke();
+}
+
+// Given tile X and Y coordinates, draw a right arrow on that tile. (0, 0) is top left.
+function drawRightArrow(tileX, tileY){
+    let drawingCoords = getTileMidCoords(tileX, tileY);
+    ctx.beginPath();
+    ctx.moveTo(drawingCoords.x - (tileSize / 5), drawingCoords.y - (tileSize / 3));
+    ctx.lineTo(drawingCoords.x + (tileSize /5), drawingCoords.y);
+    ctx.lineTo(drawingCoords.x - (tileSize / 5), drawingCoords.y + (tileSize / 3));
+    ctx.strokeStyle = "rgba(255, 212, 128, 1)"
+    ctx.lineWidth = 7;
+    ctx.stroke();
+}
+
+// Given tile X and Y coordinates, draw a down arrow on that tile. (0, 0) is top left.
+function drawDownArrow(tileX, tileY){
+    let drawingCoords = getTileMidCoords(tileX, tileY);
+    ctx.beginPath();
+    ctx.moveTo(drawingCoords.x - (tileSize / 3), drawingCoords.y - (tileSize / 5));
+    ctx.lineTo(drawingCoords.x, drawingCoords.y + (tileSize / 5));
+    ctx.lineTo(drawingCoords.x + (tileSize / 3), drawingCoords.y - (tileSize / 5));
+    ctx.strokeStyle = "rgba(255, 212, 128, 1)";
+    ctx.lineWidth = 7;
+    ctx.stroke();
+}
+
+// Given tile X and Y coordinates, draw a left arrow on that tile. (0, 0) is top left.
+function drawLeftArrow(tileX, tileY){
+    let drawingCoords = getTileMidCoords(tileX, tileY);
+    ctx.beginPath();
+    ctx.moveTo(drawingCoords.x + (tileSize / 5), drawingCoords.y - (tileSize / 3));
+    ctx.lineTo(drawingCoords.x - (tileSize /5), drawingCoords.y);
+    ctx.lineTo(drawingCoords.x + (tileSize / 5), drawingCoords.y + (tileSize / 3));
+    ctx.strokeStyle = "rgba(255, 212, 128, 1)"
+    ctx.lineWidth = 7;
+    ctx.stroke();
 }
 
 function drawPlayer(){
@@ -188,23 +312,27 @@ function draw() {
                 case 0:
                     break;
                 case 1:
-                    break; // TODO
+                    drawUpArrow(j, i);
+                    break;
                 case 2:
-                    break; // TODO
+                    drawRightArrow(j, i)
+                    break;
                 case 3:
-                    break; // TODO
+                    drawDownArrow(j, i);
+                    break;
                 case 4:
-                    break; // TODO
+                    drawLeftArrow(j, i);
+                    break;
                 case 5: // Orb
                     ctx.beginPath();
-                    let coords = getTileMidCoords(i, j);
+                    let coords = getTileMidCoords(j, i);
                     ctx.arc(coords.x, coords.y, 50, 0, 2 * Math.PI);
                     ctx.fillStyle = "rgba(204, 255, 255)";
                     ctx.fill();
                     break;
                 case 6: // Danger tile
                     ctx.beginPath();
-                    ctx.rect(75 + tileSize * i, 75 + tileSize * j, tileSize - 2.5, tileSize - 2.5);
+                    ctx.rect(75 + tileSize * j, 75 + tileSize * i, tileSize - 2.5, tileSize - 2.5);
                     ctx.fillStyle = "rgba(0, 102, 255, 1)";
                     ctx.fill();
                     break;
@@ -236,7 +364,7 @@ function draw() {
         alert ("You walled :(");
         playerX = 450;
         playerY = 450;
-    } else if (arena[playerTile.x][playerTile.y] === 6){
+    } else if (arena[playerTile.y][playerTile.x] === 6){
         alert ("You stood in the bad :(");
         playerX = 450;
         playerY = 450;
@@ -246,3 +374,4 @@ function draw() {
 document.addEventListener("keydown", keyDownHandler, false);
 document.addEventListener("mousemove", mouseMoveHandler);
 setInterval(draw, 10);
+setInterval(step, 1000)
