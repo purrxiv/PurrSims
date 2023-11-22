@@ -7,16 +7,20 @@ const canvasWidth = canvas.width;
 const canvasHeight = canvas.height;
 
 let intervals = [];
+let timeouts = [];
 
 let playerX = 450;
-let playerY = 450;
+let playerY = 485;
 let playerFacing = 0; // Angle player is facing, 0-359, 0 is North, 90 is E, 180 S, 270 W (clockwise)
 
-let playerWeaknessDebuff = Math.floor(Math.random() * 4) + 1; // 0 = none, 1 = Front, 2 = Right, 3 = Back, 4 = Left
-let playerRotateDebuff = 0; // 0 = none, 3 = fake drawRotated, 5 = real drawRotated
+let playerWeaknessDebuff = randomDirection(); // 0 = none, 1 = Front, 2 = Right, 3 = Back, 4 = Left
+let playerRotateDebuff = randomRotation(); // 0 = none, 3 = fake drawRotated, 5 = real drawRotated
 
 // Whether the player was facing the wrong way for the orb. Used for resetting stage if hit.
 let hitByOrb = false;
+
+// Whether the player was in the wrong quadrant for boss cleave. Used for resetting stage if hit.
+let hitByCleave = false;
 
 // Represent the state of the arena.
 // 0 = empty, 1 = up arrow, 2 = right, 3 = down, 4 = left, 5 = orb, 6 = blue/lit up/danger
@@ -37,6 +41,9 @@ let arenaMechanics = [
     [0, 0, 0, 0, 0],
     [0, 0, 0, 0, 4]
 ];
+
+// The currently pending boss cleave, or null if none active
+let pendingBossCleave;
 
 // The number of mechanic steps
 let stepCount = 0;
@@ -73,10 +80,37 @@ function getPlayerTile(){
     }
 }
 
+function randomDirection(){
+    return Math.floor(Math.random() * 4) + 1;
+}
+
+function randomRotation(){
+    const rotations = [3,5];
+    return rotations[Math.floor(Math.random() * rotations.length)];
+}
+
+// Returns the "quadrant" (Front/Right/Back/Left) that player is with relation to the boss (middle of arena).
+// 1 = enemy is in front of player, 2 = enemy is to right, 3 = back, 4 = left
+function checkBossDirection(player) {
+    let playerPositionAngle = calculateAngleFromPoint({x: player.x, y: player.y}, {x:canvasWidth/2, y:canvasHeight/2});
+    if (playerPositionAngle < 0){
+        playerPositionAngle += 360;
+    }
+    console.log(playerPositionAngle);
+    if (playerPositionAngle < 45 || playerPositionAngle >= 315) { // Front
+        return 1;
+    } else if (playerPositionAngle >= 45 && playerPositionAngle < 135) { // Right
+        return 2;
+    } else if (playerPositionAngle >= 135 && playerPositionAngle < 225) { // Back
+        return 3;
+    } else if (playerPositionAngle >= 225 && playerPositionAngle < 315) { // Left
+        return 4;
+    }
+}
+
 // Returns the "quadrant" (Front/Right/Back/Left) that enemy is with relation to the direction of the player.
 // 1 = enemy is in front of player, 2 = enemy is to right, 3 = back, 4 = left
 // Useful for checking whether the player's "safe side" is pointed the correct way
-// TODO can probably generalize this to also be used for the boss cleaves
 function checkPlayerDirection(enemy) {
     let enemyAngle = calculateAngleFromPoint({x: enemy.x, y: enemy.y}, {x: playerX, y: playerY});
     enemyAngle -= playerFacing;
@@ -213,10 +247,31 @@ function orbExplosion(tileX, tileY){
     return playerWeaknessDebuff === checkPlayerDirection(getTileMidCoords(tileX, tileY));
 }
 
+// Schedules a boss cleave with the specified 3 or 5 rotation to go off in a specified amount of time in milliseconds.
+// telegraphDirection should be 1-4, for up right down left respectively
+// rotationDirection should be 1 for clockwise and 2 for counterclockwise (this is the rotation telegraph that is shown)
+// rotationCount should be 3 or 5
+// delay should be a time in milliseconds
+function bossCleave(telegraphDirection, rotationDirection, rotationCount, delay){
+    pendingBossCleave = {
+        telegraphDirection: telegraphDirection,
+        rotationDirection: rotationDirection,
+        rotationCount: rotationCount,
+    }
+
+    timeouts.push(setTimeout(() =>{
+        let safeSide = telegraphDirection; // TODO rotate cleave
+        if (checkBossDirection({x: playerX, y: playerY}) !== safeSide){
+            hitByCleave = true;
+        }
+        pendingBossCleave = null;
+    }, delay));
+}
+
 // Resets the game state
 function reset(){
     playerX = 450;
-    playerY = 450;
+    playerY = 485;
     playerFacing = 0;
 
     arena = [
@@ -240,15 +295,26 @@ function reset(){
     stepCount = 0;
 
     hitByOrb = false;
+    hitByCleave = false;
+    pendingBossCleave = null;
 
     for (let i = 0; i < intervals.length; i++){
         clearInterval(intervals.pop());
     }
 
+    for (let i = 0; i < timeouts.length; i++){
+        clearTimeout(timeouts.pop());
+    }
+
     intervals.push(setInterval(draw, 10));
-    setTimeout(() => {
+
+    timeouts.push(setTimeout(() => {
         intervals.push(setInterval(step, 1000));
-    }, 5000);
+    }, 5000));
+
+    timeouts.push(setTimeout(() => {
+        bossCleave(randomDirection(), Math.floor(Math.random() * 2) + 1, randomRotation(), 5000);
+    }, 5000 + (3 * 1200)));
 }
 
 ////////////////////
@@ -346,6 +412,19 @@ function drawPlayerWeaknessDebuff(debuff){
 
 }
 
+function drawBossCleave(direction, rotation){
+    direction -= 1;
+    let endAngle = degToRad(0 - 90  - 45 + 90*direction);
+    let startAngle = degToRad(0 - 90  + 45 + 90*direction);
+
+    ctx.beginPath();
+    ctx.fillStyle = "rgba(139, 0, 0, 0.5)";
+    ctx.moveTo(canvasWidth / 2, canvasHeight / 2);
+    ctx.arc(canvasWidth / 2, canvasHeight / 2, 450, startAngle, endAngle, false);
+    ctx.lineTo(canvasWidth / 2, canvasHeight / 2);
+    ctx.fill();
+}
+
 function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear the canvas on each frame
     // Draw arena background/fill
@@ -424,12 +503,15 @@ function draw() {
     let playerTile = getPlayerTile();
     if (playerTile.x > 4 || playerTile.y > 4 || playerTile.x < 0 || playerTile. y < 0){
         alert ("You walled :(");
-        reset()
+        reset();
     } else if (arena[playerTile.y][playerTile.x] === 6){
-        alert ("You stood in the bad :(");
-        reset()
+        alert ("You got floorfucked :(");
+        reset();
     } else if (hitByOrb){
         alert("You didn't show hole to the orb :(");
+        reset();
+    } else if (hitByCleave){
+        alert("You stood in the boss's bad :(");
         reset();
     }
 
@@ -438,6 +520,9 @@ function draw() {
         alert("Congrats, you survived the mechanic :)");
         reset();
     }
+    if (pendingBossCleave){
+        drawBossCleave(pendingBossCleave.telegraphDirection, pendingBossCleave.rotationDirection);
+    }
 }
 
 document.addEventListener("keydown", keyDownHandler, false);
@@ -445,5 +530,9 @@ document.addEventListener("mousemove", mouseMoveHandler);
 
 intervals.push(setInterval(draw, 10));
 setTimeout(() => {
-    intervals.push(setInterval(step, 1000));
+    intervals.push(setInterval(step, 1200));
 }, 5000);
+
+timeouts.push(setTimeout(() => {
+    bossCleave(randomDirection(), Math.floor(Math.random() * 2) + 1, randomRotation(), 5000);
+}, 5000 + (3 * 1200)));
