@@ -6,12 +6,17 @@ const tileSize = 150;
 const canvasWidth = canvas.width;
 const canvasHeight = canvas.height;
 
+let intervals = [];
+
 let playerX = 450;
 let playerY = 450;
 let playerFacing = 0; // Angle player is facing, 0-359, 0 is North, 90 is E, 180 S, 270 W (clockwise)
 
 let playerWeaknessDebuff = Math.floor(Math.random() * 4) + 1; // 0 = none, 1 = Front, 2 = Right, 3 = Back, 4 = Left
 let playerRotateDebuff = 0; // 0 = none, 3 = fake drawRotated, 5 = real drawRotated
+
+// Whether the player was facing the wrong way for the orb. Used for resetting stage if hit.
+let hitByOrb = false;
 
 // Represent the state of the arena.
 // 0 = empty, 1 = up arrow, 2 = right, 3 = down, 4 = left, 5 = orb, 6 = blue/lit up/danger
@@ -32,6 +37,9 @@ let arenaMechanics = [
     [0, 0, 0, 0, 0],
     [0, 0, 0, 0, 4]
 ];
+
+// The number of mechanic steps
+let stepCount = 0;
 
 //////////////////////
 // HELPER FUNCTIONS //
@@ -144,23 +152,23 @@ function mouseMoveHandler(e){
 // MECHANIC FUNCTIONS //
 ////////////////////////
 
-// Advance the board by one stage/step.
-function step(){
+// Advance the arena's mechanics by one step.
+function step() {
     let actionTiles = []; // List of tiles requiring action
-    for (let i = 0; i < arenaMechanics.length; i++){
-        for (let j = 0; j < arenaMechanics[i].length; j++){
-            if (arenaMechanics[i][j] !== 0){
+    for (let i = 0; i < arenaMechanics.length; i++) {
+        for (let j = 0; j < arenaMechanics[i].length; j++) {
+            if (arenaMechanics[i][j] !== 0) {
                 actionTiles.push({x: j, y: i});
             }
         }
     }
 
-    for (let i = 0; i < actionTiles.length; i++){
+    for (let i = 0; i < actionTiles.length; i++) {
         let tileX = actionTiles[i].x;
         let tileY = actionTiles[i].y;
-        if (arena[tileY][tileX] === 5){
-            if (!orbExplosion(tileX, tileY)){
-                alert("You didn't show hole to the orb :(");
+        if (arena[tileY][tileX] === 5) {
+            if (!orbExplosion(tileX, tileY)) {
+                hitByOrb = true;
             }
         }
         arena[tileY][tileX] = 6;
@@ -168,7 +176,9 @@ function step(){
 
         arenaMechanics[tileY][tileX] = 0;
     }
-} //
+
+    stepCount++;
+}
 
 // Helper function for step()
 function setNextTile(tileX, tileY, direction){
@@ -226,6 +236,19 @@ function reset(){
     ];
 
     playerWeaknessDebuff = Math.floor(Math.random() * 4) + 1
+
+    stepCount = 0;
+
+    hitByOrb = false;
+
+    for (let i = 0; i < intervals.length; i++){
+        clearInterval(intervals.pop());
+    }
+
+    intervals.push(setInterval(draw, 10));
+    setTimeout(() => {
+        intervals.push(setInterval(step, 1000));
+    }, 5000);
 }
 
 ////////////////////
@@ -366,6 +389,20 @@ function draw() {
     }
     ctx.closePath();
 
+    // Draw the starting telegraphs
+    ctx.beginPath();
+    if (stepCount === 0){
+        for (let i = 0; i < arenaMechanics.length; i++){
+            for (let j = 0; j < arenaMechanics[i].length; j++){
+                if (arenaMechanics[i][j] !== 0) {
+                    ctx.rect(75+5+tileSize*i, 75+5+tileSize*j, tileSize-10, tileSize-10);
+                }
+            }
+        }
+        ctx.strokeStyle = "rgba(0, 102, 255, 1)";
+        ctx.stroke();
+    }
+
     // Draw the arena tiles
     ctx.beginPath();
     for (let i = 0; i < 5; i++){
@@ -391,10 +428,22 @@ function draw() {
     } else if (arena[playerTile.y][playerTile.x] === 6){
         alert ("You stood in the bad :(");
         reset()
+    } else if (hitByOrb){
+        alert("You didn't show hole to the orb :(");
+        reset();
+    }
+
+    // Perform check if player has cleared
+    if (stepCount > 10){
+        alert("Congrats, you survived the mechanic :)");
+        reset();
     }
 }
 
 document.addEventListener("keydown", keyDownHandler, false);
 document.addEventListener("mousemove", mouseMoveHandler);
-setInterval(draw, 10);
-setInterval(step, 1000)
+
+intervals.push(setInterval(draw, 10));
+setTimeout(() => {
+    intervals.push(setInterval(step, 1000));
+}, 5000);
