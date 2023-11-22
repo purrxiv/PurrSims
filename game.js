@@ -1,12 +1,14 @@
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 
-const moveSpeed = 5
+const moveSpeed = 2
 const tileSize = 150;
 const canvasWidth = canvas.width;
 const canvasHeight = canvas.height;
 
 const bossIcon = new Image();
+
+let heldKey;
 
 let intervals = [];
 let timeouts = [];
@@ -149,14 +151,14 @@ function calculateAngleFromPoint(objectPoint, referencePoint){
 ////////////////////
 
 function keyDownHandler(e) {
-    if (e.key === "w") {
-        playerY -= moveSpeed;
-    } else if (e.key === "a") {
-        playerX -= moveSpeed;
-    } else if (e.key === "s") {
-        playerY += moveSpeed;
-    } else if (e.key === "d") {
-        playerX += moveSpeed;
+    if (e.key === "w" || e.key === "a" || e.key === "s" || e.key === "d") {
+        heldKey = e.key;
+    }
+}
+
+function keyUpHandler(e) {
+    if (e.key === "w" || e.key === "a" || e.key === "s" || e.key === "d") {
+        heldKey = null;
     }
 }
 
@@ -533,6 +535,23 @@ function drawPlayerRotate(clockwise, rotationCount){
 }
 
 function draw() {
+    if (heldKey){
+        switch (heldKey){
+            case "w":
+                playerY -= moveSpeed;
+                break;
+            case "a":
+                playerX -= moveSpeed;
+                break;
+            case "s":
+                playerY += moveSpeed;
+                break;
+            case "d":
+                playerX += moveSpeed;
+                break;
+        }
+    }
+
     ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear the canvas on each frame
     // Draw arena background/fill
     ctx.rect(0, 0, canvas.width, canvas.height);
@@ -644,6 +663,7 @@ function draw() {
 }
 
 document.addEventListener("keydown", keyDownHandler, false);
+document.addEventListener("keyup", keyUpHandler, false);
 document.addEventListener("mousemove", mouseMoveHandler);
 
 bossIcon.src = "img/boss.png";
