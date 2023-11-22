@@ -15,3 +15,10 @@ To use this simulator, a browser that supports the HTML canvas is needed, and Ja
 
 ## Known issues
 Known issues are shown on the simulator page itself.
+
+## License/Contributing
+This web page, including all the HTML, JavaScript, and CSS code comprising and running it, was developed by CursedBlackCat</a>/Purrnyan Mew'uwu@Diabolos and is not licensed. You are permitted to use the mechanic simulator on this web page for free to practice mechanics to help you prog the real thing in FFXIV, but you are not permitted to use or modify the source code of this page under any other circumstances without the express written permission of the developer.
+
+Not that you would probably want to anyway, as this web page is as barebones as it gets, and my JavaScript is a mess.
+
+If you wish to contribute, please contact me directly via Discord: `cursedblackcat`.
