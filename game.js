@@ -362,6 +362,8 @@ function reset(){
     timeouts.push(setTimeout(() => {
         bossGaze(randomRotation(), randomRotationDebuff(), 6000 + 7000);
     }, 5000 + (3 * 1200) - 2000));
+
+    heldKey = null;
 }
 
 ////////////////////
@@ -668,15 +670,4 @@ document.addEventListener("mousemove", mouseMoveHandler);
 
 bossIcon.src = "img/boss.png";
 
-intervals.push(setInterval(draw, 10));
-setTimeout(() => {
-    intervals.push(setInterval(step, 1200));
-}, 3000);
-
-timeouts.push(setTimeout(() => {
-    bossCleave(randomDirection(), randomRotation(), randomRotationDebuff(), 6000);
-}, 3000 + (3 * 1200)));
-
-timeouts.push(setTimeout(() => {
-    bossGaze(randomRotation(), randomRotationDebuff(), 6000 + 7000);
-}, 3000 + (3 * 1200) - 2000));
+reset();
