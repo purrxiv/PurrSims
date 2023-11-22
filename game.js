@@ -203,6 +203,29 @@ function orbExplosion(tileX, tileY){
     return playerWeaknessDebuff === checkPlayerDirection(getTileMidCoords(tileX, tileY));
 }
 
+// Resets the game state
+function reset(){
+    playerX = 450;
+    playerY = 450;
+    playerFacing = 0;
+
+    arena = [
+        [2, 5, 0, 0, 3],
+        [0, 0, 0, 0, 4],
+        [0, 0, 0, 0, 0],
+        [2, 0, 0, 0, 5],
+        [1, 0, 0, 0, 4]
+    ];
+
+    arenaMechanics = [
+        [2, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 4]
+    ];
+}
+
 ////////////////////
 // DRAW FUNCTIONS //
 ////////////////////
@@ -362,12 +385,10 @@ function draw() {
     let playerTile = getPlayerTile();
     if (playerTile.x > 4 || playerTile.y > 4 || playerTile.x < 0 || playerTile. y < 0){
         alert ("You walled :(");
-        playerX = 450;
-        playerY = 450;
+        reset()
     } else if (arena[playerTile.y][playerTile.x] === 6){
         alert ("You stood in the bad :(");
-        playerX = 450;
-        playerY = 450;
+        reset()
     }
 }
 
