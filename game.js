@@ -132,30 +132,6 @@ function checkPlayerDirection(enemy) {
     }
 }
 
-// Returns the "quadrant" (Front/Right/Back/Left) that the coordinates otherObject is with relation to the position of centralObject.
-// 1 = otherObject is in front of centralObject, 2 = otherObject is to right, 3 = back, 4 = left
-// Useful for checking whether the player is on the boss aoe's "safe side"
-// DOES NOT WORK FOR THE PLAYER BECAUSE THAT NEEDS PLAYER DIRECTION, NOT COORDINATES
-// TODO can probably delete this function after generalizing the above function
-function checkObjectDirection(centralObject, otherObject) {
-    let otherObjectAngle = calculateAngle(otherObject.x, otherObject.y);
-    let centralObjectAngle = calculateAngle(centralObject.x, centralObject.y);
-    if (otherObjectAngle >= centralObjectAngle + 315 || otherObjectAngle < centralObjectAngle + 45) { // Front
-        return 1;
-    } else if (otherObjectAngle >= centralObjectAngle + 45 && otherObjectAngle < centralObjectAngle + 135) { // Right
-        return 2;
-    } else if (otherObjectAngle >= centralObjectAngle + 135 && otherObjectAngle < centralObjectAngle + 225) { // Back
-        return 3;
-    } else if (otherObjectAngle >= centralObjectAngle + 225 && otherObjectAngle < centralObjectAngle + 315) { // Back
-        return 4;
-    }
-}
-
-// Returns the angle, in degrees, of the (x, y) point, relative to the middle of the canvas. 0 degrees is up/north.
-function calculateAngle(x, y){
-    return radToDeg(Math.atan2(y - (canvasHeight/2), x - (canvasWidth/2))) + 90;
-}
-
 // Returns the angle, in degrees, of the (x, y) point, relative to the given reference point. 0 degrees is up/north.
 function calculateAngleFromPoint(objectPoint, referencePoint){
     return radToDeg(Math.atan2(objectPoint.y - referencePoint.y, objectPoint.x - referencePoint.x)) + 90;
@@ -264,26 +240,25 @@ function bossCleave(telegraphDirection, clockwise, rotationCount, delay){
     }
 
     timeouts.push(setTimeout(() =>{
-        let safeSide = telegraphDirection;
         if (rotationCount === 3){
             clockwise = !clockwise;
         }
 
         if (clockwise){
-            safeSide++;
+            telegraphDirection++;
         } else {
-            safeSide--;
+            telegraphDirection--;
         }
 
-        if (safeSide === 5){
-            safeSide = 1;
+        if (telegraphDirection === 5){
+            telegraphDirection = 1;
         }
 
-        if (safeSide === 0){
-            safeSide = 4;
+        if (telegraphDirection === 0){
+            telegraphDirection = 4;
         }
 
-        if (checkBossDirection({x: playerX, y: playerY}) !== safeSide){
+        if (checkBossDirection({x: playerX, y: playerY}) !== telegraphDirection){
             hitByCleave = true;
         }
         pendingBossCleave = null;
