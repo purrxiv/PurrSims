@@ -62,13 +62,13 @@ function getPlayerTile(){
 function checkPlayerDirection(enemy) {
     let enemyAngle = calculateAngleFromPoint({x: enemy.x, y: enemy.y}, {x: playerX, y: playerY});
     enemyAngle -= playerFacing;
-    if (enemyAngle < 45) { // Front
+    if (enemyAngle < 45 || enemyAngle >= 315) { // Front
         return 1;
     } else if (enemyAngle >= 45 && enemyAngle < 135) { // Right
         return 2;
     } else if (enemyAngle >= 135 && enemyAngle < 225) { // Back
         return 3;
-    } else if (enemyAngle >= 225 && enemyAngle < 315) { // Back
+    } else if (enemyAngle >= 225 && enemyAngle < 315) { // Left
         return 4;
     }
 }
