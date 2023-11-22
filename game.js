@@ -224,6 +224,8 @@ function reset(){
         [0, 0, 0, 0, 0],
         [0, 0, 0, 0, 4]
     ];
+
+    playerWeaknessDebuff = Math.floor(Math.random() * 4) + 1
 }
 
 ////////////////////
