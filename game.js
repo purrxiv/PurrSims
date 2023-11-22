@@ -264,7 +264,7 @@ function bossCleave(telegraphDirection, clockwise, rotationCount, delay){
     }
 
     timeouts.push(setTimeout(() =>{
-        let safeSide = telegraphDirection; // TODO rotate cleave
+        let safeSide = telegraphDirection;
         if (rotationCount === 3){
             clockwise = !clockwise;
         }
