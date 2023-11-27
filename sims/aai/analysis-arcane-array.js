@@ -309,7 +309,7 @@ function bossGaze(clockwise, rotationCount, delay){
 }
 
 // Freezes the game state. Called on mechanic failure
-function stop() {
+function stopAnalysisArcaneArray() {
     hitByOrb = false;
     hitByCleave = false;
     hitByGaze = false;
@@ -328,7 +328,7 @@ function stop() {
 
 // Resets the game state and starts a run
 function beginAnalysisArcaneArray(){
-    stop();
+    stopAnalysisArcaneArray();
     playerX = 450;
     playerY = 485;
     playerFacing = 0;
@@ -640,42 +640,42 @@ function draw() {
     let playerTile = getPlayerTile();
     if (playerTile.x > 4 || playerTile.y > 4 || playerTile.x < 0 || playerTile. y < 0){
         if(confirm ("You walled :(\nClick OK to retry, or Cancel to stop and choose another mechanic.")){
-            beginAnalysisArcaneArray()
+            beginAnalysisArcaneArray();
         } else {
-            stop();
+            stopAnalysisArcaneArray();
         }
     } else if (arena[playerTile.y][playerTile.x] === 6){
         if(confirm ("You got floorfucked :(\nClick OK to retry, or Cancel to stop and choose another mechanic.")){
-            beginAnalysisArcaneArray()
+            beginAnalysisArcaneArray();
         } else {
-            stop();
+            stopAnalysisArcaneArray();
         }
     } else if (hitByOrb){
         if(confirm ("You didn't show hole to the orb :(\nClick OK to retry, or Cancel to stop and choose another mechanic.")){
-            beginAnalysisArcaneArray()
+            beginAnalysisArcaneArray();
         } else {
-            stop();
+            stopAnalysisArcaneArray();
         }
     } else if (hitByCleave){
         if(confirm ("You got hit by the boss's cleave :(\nClick OK to retry, or Cancel to stop and choose another mechanic.")){
-            beginAnalysisArcaneArray()
+            beginAnalysisArcaneArray();
         } else {
-            stop();
+            stopAnalysisArcaneArray();
         }
     } else if (hitByGaze){
         if(confirm ("You didn't show hole to the boss :(\nClick OK to retry, or Cancel to stop and choose another mechanic.")){
-            beginAnalysisArcaneArray()
+            beginAnalysisArcaneArray();
         } else {
-            stop();
+            stopAnalysisArcaneArray();
         }
     }
 
     // Perform check if player has cleared
     if (stepCount > 14){
         if(confirm ("Congrats, you survived the mechanic :)\nClick OK to go again, or Cancel to stop and choose another mechanic.")){
-            beginAnalysisArcaneArray()
+            beginAnalysisArcaneArray();
         } else {
-            stop();
+            stopAnalysisArcaneArray();
         }
     }
     if (pendingBossCleave){
