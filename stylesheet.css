@@ -34,9 +34,8 @@ canvas {
     margin-right: 8px;
 }
 .right-div {
-    float: left;
-    width: 50%;
-    height: 100%;
+    margin-left: 920px;
+    margin-right: 20px;
     padding-left: 15px;
     padding-right: 15px;
     padding-bottom: 15px;
